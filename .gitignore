@@ -1,0 +1,4 @@
+nrf_test/
+*.cogui
+*.comarker
+*.comemgui
