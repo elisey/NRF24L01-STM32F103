@@ -83,6 +83,7 @@ typedef enum	{
 /// @post Rx interrupt is reflected on interrupt signal, but not Tx
 void nordic_init(
 		uint8_t* selfAddress,
+		uint8_t* broadcastAddress,
 		uint8_t payload,
 		unsigned short mhz,
 		unsigned short bitrate_kbps,

@@ -73,6 +73,7 @@ static uint8_t nordic_readStatusRegister()
 
 void nordic_init(
 		uint8_t* selfAddress,
+		uint8_t* broadcastAddress,
 		uint8_t payload,
 		unsigned short mhz,
 		unsigned short bitrate_kbps,
@@ -84,7 +85,7 @@ void nordic_init(
 
 	nordic_HAL_ChipEnableLow();
 	nordic_power_down();
-	nordic_set_intr_signals(false, true, true);
+	nordic_set_intr_signals(false, false, false);
 	nordic_clear_all_intr_flags();
 	nordic_set_crc(2);
 
@@ -92,13 +93,13 @@ void nordic_init(
 	nordic_set_air_data_rate(bitrate_kbps);
 	nordic_set_power_level(3);
 
-	nordic_enable_pipes(true, false, false, false, false, false);
+	nordic_enable_pipes(true, true, false, false, false, false);
 	nordic_set_auto_ack_for_pipes(true, false, false, false, false, false);
-	//nordic_set_auto_transmit_options(500, 3);
+
 	nordic_set_auto_transmit_options(500, 3);
 
 	nordic_set_payload_for_pipe(0, payload);
-	nordic_set_payload_for_pipe(1, 0);
+	nordic_set_payload_for_pipe(1, payload);
 	nordic_set_payload_for_pipe(2, 0);
 	nordic_set_payload_for_pipe(3, 0);
 	nordic_set_payload_for_pipe(4, 0);
@@ -108,8 +109,8 @@ void nordic_init(
 
 	nordic_set_addr_width(addressWidth);
 
-
 	nordic_set_rx_pipe0_addr(selfAddress, addressWidth);
+	nordic_set_rx_pipe1_addr(broadcastAddress, addressWidth);
 	nordic_set_tx_address(selfAddress, addressWidth);
 
 	nordic_power_up();
@@ -501,5 +502,3 @@ void nordic_enable_pipes(bool pipe0, bool pipe1, bool pipe2, bool pipe3, bool pi
 
 	nordic_writeRegister(2, controlReg);
 }
-
-

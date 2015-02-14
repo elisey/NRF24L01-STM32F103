@@ -23,7 +23,7 @@ void sender()
 	while(1)
 	{
 
-
+		Radio_HAL_SendBroadcast(data, 32);
 
 		if (Radio_HAL_Send(1, data, 32) == true)	{
 			Led_SetState(&led2, led_on);
@@ -31,7 +31,6 @@ void sender()
 		else	{
 			Led_SetState(&led2, led_off);
 		}
-		Radio_HAL_Send(2, data, 32);
 
 		if (Radio_HAL_Send(2, data, 32) == true)	{
 			Led_SetState(&led3, led_on);
@@ -55,6 +54,7 @@ void receiver()
 
 		int result = Radio_HAL_Receive(data);
 		if (result != -1)	{
+
 			Led_Tougle(&led3);
 		}
 
