@@ -33,7 +33,7 @@ bool Radio_HAL_Send(uint16_t dstAddress, uint8_t *buffer, uint8_t sizeOfBuffer)
 	nordic_set_rx_pipe0_addr(txAddress, ADDRESS_WIDTH);
 
 	bool result;
-	result = nordic_mode1_send_single_packet(buffer, 32);
+	result = nordic_mode1_send_single_packet(buffer, sizeOfBuffer);
 
 	nordic_set_rx_pipe0_addr(selfAddressArray, ADDRESS_WIDTH);
 
@@ -51,7 +51,7 @@ bool Radio_HAL_SendBroadcast(uint8_t *buffer, uint8_t sizeOfBuffer)
 	nordic_standby1_to_tx_mode1();
 
 	bool result;
-	result = nordic_mode1_send_single_packet(buffer, 32);
+	result = nordic_mode1_send_single_packet(buffer, sizeOfBuffer);
 	nordic_set_auto_ack_for_pipes(true, false, false, false, false, false);
     nordic_set_auto_transmit_options(500, 3);
 	nordic_standby1_to_rx();
@@ -62,14 +62,16 @@ int Radio_HAL_Receive(uint8_t *buffer)
 {
 	if(nordic_is_packet_available())
 	{
-		nordic_read_rx_fifo(buffer, 32);
+		uint8_t length = nordic_get_rx_payload_width();
+
+		nordic_read_rx_fifo(buffer, length);
 
 		// Only clear the interrupt if no more receivedPacket available
 		// because nordic has 3 level Rx FIFO.
 		if (!nordic_is_packet_available()) {
 			nordic_clear_packet_available_flag();
 		}
-		return 32;
+		return length;
 	}
 	else	{
 		return (-1);

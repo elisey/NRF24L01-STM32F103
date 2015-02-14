@@ -14,25 +14,26 @@ void delay(int time)
 
 void sender()
 {
+	const uint8_t size = 32;
 	uint8_t data[32];
 	int i;
-	for (i = 0; i < 32; ++i) {
+	for (i = 0; i < size; ++i) {
 		data[i] = i+5;
 	}
 
 	while(1)
 	{
 
-		Radio_HAL_SendBroadcast(data, 32);
+		Radio_HAL_SendBroadcast(data, size);
 
-		if (Radio_HAL_Send(1, data, 32) == true)	{
+		if (Radio_HAL_Send(1, data, size) == true)	{
 			Led_SetState(&led2, led_on);
 		}
 		else	{
 			Led_SetState(&led2, led_off);
 		}
 
-		if (Radio_HAL_Send(2, data, 32) == true)	{
+		if (Radio_HAL_Send(2, data, size) == true)	{
 			Led_SetState(&led3, led_on);
 		}
 		else	{
@@ -56,6 +57,9 @@ void receiver()
 		if (result != -1)	{
 
 			Led_Tougle(&led3);
+			if (result == 32)	{
+				Led_Tougle(&led4);
+			}
 		}
 
 	}

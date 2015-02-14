@@ -311,9 +311,14 @@ void nordic_set_auto_ack_for_pipes(bool pipe0, bool pipe1, bool pipe2, bool pipe
 /// @param pipe0, pipe1, pipe2, pipe3, pipe4, pipe5		Set to true, to enable the pipe.
 void nordic_enable_pipes(bool pipe0, bool pipe1, bool pipe2, bool pipe3, bool pipe4, bool pipe5);
 
-
-
-
+void nordic_toggle_feature();
+uint8_t nordic_get_rx_payload_width();
+void nordic_queue_tx_fifo_no_ack(uint8_t *data, unsigned short length);
+void nordic_set_features(
+		bool enableDinamicPayloadLength,
+		bool enablePayloadWithAck,
+		bool enableTxPayloadNoAckCommand);
+void nordic_enable_dynamic_payload_length(bool pipe0, bool pipe1, bool pipe2, bool pipe3, bool pipe4, bool pipe5);
 
 #ifdef __cplusplus
 }

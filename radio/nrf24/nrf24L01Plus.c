@@ -18,7 +18,12 @@
 #include "nrf24L01Plus.h"
 #include "nrf24L01Plus_HAL.h"
 
-static unsigned short addressWidth = 0;
+#define commandACTIVATE					(0x50)
+#define commandR_RX_PL_WID				(0x60)
+#define commandW_TX_PAYLOAD_NO_ACK		(0xB0)
+
+#define registerFEATURE					(0x1D)
+#define registerDYNPD					(0x1C)
 
 // LOW LEVEL NORDIC IO FUNCTION:
 static uint8_t nordic_transfer(uint8_t command, uint8_t* data, unsigned short length, bool copy)
@@ -77,9 +82,13 @@ void nordic_init(
 		uint8_t payload,
 		unsigned short mhz,
 		unsigned short bitrate_kbps,
-		unsigned short _address_width)
+		unsigned short address_width)
 {
 	nordic_HAL_Init();
+	nordic_toggle_feature();
+	nordic_set_features(true, false, false);
+	nordic_enable_dynamic_payload_length(true, true, false, false, false, false);
+
 	nordic_flush_rx_fifo();
 	nordic_flush_tx_fifo();
 
@@ -98,20 +107,11 @@ void nordic_init(
 
 	nordic_set_auto_transmit_options(500, 3);
 
-	nordic_set_payload_for_pipe(0, payload);
-	nordic_set_payload_for_pipe(1, payload);
-	nordic_set_payload_for_pipe(2, 0);
-	nordic_set_payload_for_pipe(3, 0);
-	nordic_set_payload_for_pipe(4, 0);
-	nordic_set_payload_for_pipe(5, 0);
+	nordic_set_addr_width(address_width);
 
-	addressWidth = _address_width;
-
-	nordic_set_addr_width(addressWidth);
-
-	nordic_set_rx_pipe0_addr(selfAddress, addressWidth);
-	nordic_set_rx_pipe1_addr(broadcastAddress, addressWidth);
-	nordic_set_tx_address(selfAddress, addressWidth);
+	nordic_set_rx_pipe0_addr(selfAddress, address_width);
+	nordic_set_rx_pipe1_addr(broadcastAddress, address_width);
+	nordic_set_tx_address(selfAddress, address_width);
 
 	nordic_power_up();
 
@@ -151,6 +151,8 @@ void nordic_queue_tx_fifo(uint8_t *data, unsigned short length)
 {
 	nordic_outputData(0xA0, data, length);
 }
+
+
 
 #include "debug.h"
 
@@ -501,4 +503,58 @@ void nordic_enable_pipes(bool pipe0, bool pipe1, bool pipe2, bool pipe3, bool pi
 	if(pipe5) controlReg |= 0x20;
 
 	nordic_writeRegister(2, controlReg);
+}
+
+
+void nordic_toggle_feature()
+{
+	uint8_t data = 0x73;
+	nordic_outputData(commandACTIVATE, &data, 1);
+}
+
+uint8_t nordic_get_rx_payload_width()
+{
+	uint8_t data = 0;
+	uint8_t opcode = commandR_RX_PL_WID;
+
+	nordic_exchangeData(opcode, &data, 1);
+	return data;
+}
+
+void nordic_queue_tx_fifo_no_ack(uint8_t *data, unsigned short length)
+{
+	nordic_outputData(commandW_TX_PAYLOAD_NO_ACK, data, length);
+}
+
+void nordic_set_features(
+		bool enableDinamicPayloadLength,
+		bool enablePayloadWithAck,
+		bool enableTxPayloadNoAckCommand)
+{
+	uint8_t data = 0;
+
+	if (enableTxPayloadNoAckCommand)	{
+		data |= 0x01;
+	}
+	if (enablePayloadWithAck)	{
+		data |= 0x02;
+	}
+	if (enableDinamicPayloadLength)	{
+		data |= 0x04;
+	}
+	nordic_writeRegister(registerFEATURE, data);
+}
+
+void nordic_enable_dynamic_payload_length(bool pipe0, bool pipe1, bool pipe2, bool pipe3, bool pipe4, bool pipe5)
+{
+	uint8_t controlReg = 0;
+
+	if(pipe0) controlReg |= 0x01;
+	if(pipe1) controlReg |= 0x02;
+	if(pipe2) controlReg |= 0x04;
+	if(pipe3) controlReg |= 0x08;
+	if(pipe4) controlReg |= 0x10;
+	if(pipe5) controlReg |= 0x20;
+
+	nordic_writeRegister(registerDYNPD, controlReg);
 }
